@@ -1,5 +1,5 @@
 # StudyFlow
-
+#### Video Demo:<https://vimeo.com/1230238281?share=copy>
 StudyFlow est une application web développée avec **Python et Flask** pour aider les étudiants à organiser leurs études et à suivre leur progression.
 
 ## Fonctionnalités
@@ -162,6 +162,14 @@ Puis ouvrir dans le navigateur :
 http://127.0.0.1:5000
 ```
 
+###AI Assistance
+
+Pendant le développement de StudyFlow, j'ai utilisé des outils
+d'intelligence artificielle, notamment ChatGPT, comme assistants de
+programmation pour obtenir des explications, déboguer certaines
+erreurs et recevoir des suggestions d'implémentation.
+
+J'ai testé, vérifié et adapté le code utilisé dans le projet.
 ## Utilisation
 
 Après la création d'un compte, l'étudiant peut :
@@ -200,6 +208,7 @@ StudyFlow a été développé comme projet d'apprentissage afin de mettre en pra
 * opérations CRUD
 * JavaScript
 * organisation d'une application web
+
 
 ## Auteur
 
