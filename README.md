@@ -203,4 +203,9 @@ StudyFlow a été développé comme projet d'apprentissage afin de mettre en pra
 
 ## Auteur
 
-Projet personnel réalisé dans le cadre de l'apprentissage du développement web avec Python, Flask, SQL, HTML, CSS et JavaScript.
+**Mariem Hammouda**
+
+StudyFlow est un projet personnel développé dans le cadre de mon apprentissage du développement web avec Python, Flask, SQLite, HTML, CSS et JavaScript.
+
+© 2026 Mariem Hammouda. Tous droits réservés.
+
