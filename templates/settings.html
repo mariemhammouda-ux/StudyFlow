@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block title %}Paramètres — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="tk-page">
+
+  <header class="tk-header">
+    <div>
+      <h1>Paramètres</h1>
+      <p>Personnalisez votre expérience StudyFlow.</p>
+    </div>
+  </header>
+
+  <section class="tk-form profile-section">
+    <h2 class="profile-section-title">Apparence</h2>
+    <div class="form-group">
+      <label for="theme-select">Thème</label>
+      <select id="theme-select">
+        <option value="light">Clair</option>
+        <option value="dark">Sombre</option>
+      </select>
+    </div>
+  </section>
+
+
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var THEME_KEY = "sf-theme";
+  var DURATION_KEY = "sf-pomodoro-default-minutes";
+
+  var themeSelect = document.getElementById("theme-select");
+  var durationInput = document.getElementById("pomodoro-default-duration");
+
+  // --- Thème ---
+  try {
+    var storedTheme = localStorage.getItem(THEME_KEY) || "light";
+    themeSelect.value = storedTheme;
+  } catch (e) {
+    themeSelect.value = "light";
+  }
+
+  themeSelect.addEventListener("change", function () {
+    var value = themeSelect.value;
+    document.documentElement.setAttribute("data-theme", value);
+    try {
+      localStorage.setItem(THEME_KEY, value);
+    } catch (e) {
+      // stockage indisponible : le thème s'applique quand même à cette page
+    }
+  });
+
+  // --- Durée Pomodoro par défaut ---
+  try {
+    var storedDuration = localStorage.getItem(DURATION_KEY);
+    if (storedDuration) {
+      durationInput.value = storedDuration;
+    }
+  } catch (e) {
+    // pas de préférence enregistrée
+  }
+
+  durationInput.addEventListener("input", function () {
+    var minutes = parseInt(durationInput.value, 10);
+    if (!minutes || minutes <= 0) {
+      return;
+    }
+    try {
+      localStorage.setItem(DURATION_KEY, String(minutes));
+    } catch (e) {
+      // stockage indisponible : la préférence ne sera pas conservée
+    }
+  });
+})();
+</script>
+{% endblock %}

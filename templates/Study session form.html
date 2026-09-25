@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title_page }} — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="tk-page">
+  <header class="tk-header">
+    <div><h1>{{ title_page }}</h1></div>
+  </header>
+
+  <form action="{{ form_action }}" method="post" class="tk-form">
+
+    <div class="form-group">
+      <label for="subject_id">Matière</label>
+      <select id="subject_id" name="subject_id">
+        <option value="">Aucune matière</option>
+        {% for subject in subjects %}
+          <option value="{{ subject.id }}" {% if form.subject_id|string == subject.id|string %}selected{% endif %}>{{ subject.name }}</option>
+        {% endfor %}
+      </select>
+      {% if not subjects %}
+        <span class="tk-sub">Aucune matière pour le moment : ajoutes-en une dans « Matières » pour la lier à tes séances.</span>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="session_date">Date</label>
+      <input type="date" id="session_date" name="session_date" value="{{ form.session_date }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="duration_min">Durée (en minutes)</label>
+      <input type="number" id="duration_min" name="duration_min" min="1" max="1440" step="1"
+             value="{{ form.duration_min }}" placeholder="45" required>
+    </div>
+
+    <div class="form-group">
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="4">{{ form.notes }}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="tk-btn">Enregistrer</button>
+      <a href="{{ url_for('study_sessions') }}" class="tk-cancel">Annuler</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

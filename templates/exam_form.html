@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title_page }} — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="tk-page">
+  <header class="tk-header">
+    <div><h1>{{ title_page }}</h1></div>
+  </header>
+
+  <form action="{{ form_action }}" method="post" class="tk-form">
+    <div class="form-group">
+      <label for="title">Titre</label>
+      <input type="text" id="title" name="title" value="{{ exam.title if exam else '' }}" required autofocus>
+    </div>
+
+    <div class="form-group">
+      <label for="subject_id">Matière</label>
+      <select id="subject_id" name="subject_id">
+        <option value="">Aucune matière</option>
+        {% for subject in subjects %}
+          <option value="{{ subject.id }}" {% if exam and exam.subject_id == subject.id %}selected{% endif %}>{{ subject.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="exam_date">Date de l'examen</label>
+      <input type="date" id="exam_date" name="exam_date" value="{{ exam.exam_date[:10] if exam else '' }}" required>
+    </div>
+
+    <div class="form-group">
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="4">{{ exam.notes if exam and exam.notes else '' }}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="tk-btn">Enregistrer</button>
+      <a href="{{ url_for('exams') }}" class="tk-cancel">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

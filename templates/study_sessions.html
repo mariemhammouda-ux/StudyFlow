@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block title %}Sessions d'étude — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="tk-page">
+
+  <header class="tk-header">
+    <div>
+      <h1>Sessions d'étude</h1>
+      <p>{{ count }} séance{% if count > 1 %}s{% endif %} · {{ total_label }} au total</p>
+    </div>
+    <a href="{{ url_for('new_study_session') }}" class="tk-btn">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      Nouvelle séance
+    </a>
+  </header>
+
+  {% if sessions %}
+  <section class="tk-card">
+    <ul class="tk-list">
+      {% for item in sessions %}
+      <li class="tk-row">
+        <span class="ss-dot" style="background: {{ item.color }};"></span>
+
+        <div class="tk-main">
+          <a class="tk-name" href="{{ url_for('edit_study_session', session_id=item.id) }}">{{ item.subject_name or "Sans matière" }}</a>
+          {% if item.notes %}
+            <span class="ss-notes" title="{{ item.notes }}">{{ item.notes }}</span>
+          {% endif %}
+        </div>
+
+        <span class="ss-duration">{{ item.duration_label }}</span>
+        <span class="ss-date">{{ item.date_label }}</span>
+
+        <div class="tk-actions">
+          <a href="{{ url_for('edit_study_session', session_id=item.id) }}" title="Modifier" aria-label="Modifier la séance">
+            <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>
+          </a>
+          <form action="{{ url_for('delete_study_session', session_id=item.id) }}" method="post" class="tk-inline"
+                onsubmit="return confirm('Supprimer cette séance ?');">
+            <button type="submit" title="Supprimer" aria-label="Supprimer la séance">
+              <svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>
+            </button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {% else %}
+  <section class="tk-card tk-empty">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+    <strong>Aucune séance d'étude</strong>
+    <span>Enregistre ta première séance pour suivre ton temps de travail.</span>
+    <a href="{{ url_for('new_study_session') }}" class="tk-btn">Nouvelle séance</a>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block title %}Statistiques — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="tk-page st-page">
+
+  <header class="tk-header">
+    <div>
+      <h1>Statistiques</h1>
+      <p>Analyse de vos performances</p>
+    </div>
+  </header>
+
+  <!-- ===== RÉSUMÉ ===== -->
+  <section class="st-cards">
+
+    <div class="st-card">
+      <svg class="st-icon st-c-primary" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      <div class="st-card-value">{{ total_label }}</div>
+      <div class="st-card-label">Temps d'étude</div>
+      <div class="st-card-sub">{{ week_total_label }} cette semaine</div>
+    </div>
+
+
+<div class="st-card">
+  <svg class="st-icon st-c-success" viewBox="0 0 24 24">
+    <path d="M20 6 9 17l-5-5"/>
+  </svg>
+
+  <div class="st-card-value">{{ completed_tasks }}</div>
+
+  <div class="st-card-label">Tâches complètes</div>
+
+  <div class="st-card-sub">{{ completion_percent }}% de complétion</div>
+</div>
+    <div class="st-card">
+      <svg class="st-icon st-c-warning" viewBox="0 0 24 24"><path d="M12 14l4-4"/><path d="M3.3 18a10 10 0 1 1 17.4 0"/></svg>
+      <div class="st-card-value">{{ average_label }}</div>
+      <div class="st-card-label">Durée moyenne</div>
+      <div class="st-card-sub">par session</div>
+    </div>
+
+    <div class="st-card">
+      <svg class="st-icon st-c-blue" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H20"/></svg>
+      <div class="st-card-value st-card-value-text">{% if top_subject %}{{ top_subject.name }}{% else %}—{% endif %}</div>
+      <div class="st-card-label">Matière la plus étudiée</div>
+      <div class="st-card-sub">{% if top_subject %}{{ top_subject.label }} au total{% else %}aucune donnée pour l'instant{% endif %}</div>
+    </div>
+
+  </section>
+
+  {% if sessions_count %}
+
+  <!-- ===== GRAPHIQUES ===== -->
+  <section class="st-charts">
+
+    <div class="st-panel">
+      <h2>Heures par jour — cette semaine</h2>
+      <p class="st-panel-sub">Total : {{ week_total_label }}</p>
+      <div class="st-bars">
+        {% for d in week_days %}
+        <div class="st-bar-col{% if d.is_today %} is-today{% endif %}">
+          <span class="st-bar-value">{{ d.value }}</span>
+          <div class="st-bar-track">
+            <div class="st-bar" style="height: {{ d.height }}%;" title="{{ d.label }} : {{ d.value or '0 min' }}"></div>
+          </div>
+          <span class="st-bar-label">{{ d.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="st-panel">
+      <h2>Évolution mensuelle</h2>
+      <p class="st-panel-sub">Temps de travail par mois</p>
+      <div class="st-line">
+        <div class="st-line-plot">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="{{ line_points }}"/></svg>
+          {% for p in month_points %}
+            <span class="st-dot" style="left: {{ p.x }}%; bottom: {{ p.y }}%;" title="{{ p.title }}"></span>
+          {% endfor %}
+        </div>
+        <div class="st-line-labels">
+          {% for p in month_points %}<span>{{ p.label }}</span>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===== TEMPS PAR MATIÈRE ===== -->
+  <section class="st-panel st-wide">
+    <h2>Temps d'étude par matière</h2>
+    <div class="st-rows">
+      {% for s in study_by_subject %}
+      <div class="st-row" style="--st-color: {{ s.color }};">
+        <div class="st-row-head">
+          <span class="st-row-name"><span class="st-row-dot"></span>{{ s.name }}</span>
+          <span class="st-row-value">{{ s.label }}</span>
+        </div>
+        <div class="st-row-track"><div class="st-row-fill" style="width: {{ s.percent }}%;"></div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% else %}
+
+  <section class="tk-card tk-empty">
+    <svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h17"/><path d="M8 16v-5"/><path d="M12 16V7"/><path d="M16 16v-9"/></svg>
+    <strong>Aucune session d'étude</strong>
+    <span>Enregistre une séance pour voir apparaître tes graphiques.</span>
+    <a href="{{ url_for('new_study_session') }}" class="tk-btn">Nouvelle séance</a>
+  </section>
+
+  {% endif %}
+
+  <!-- ===== TÂCHES PAR MATIÈRE ===== -->
+  {% if tasks_by_subject %}
+  <section class="st-panel st-wide">
+    <h2>Tâches par matière</h2>
+    <div class="st-rows">
+      {% for s in tasks_by_subject %}
+      <div class="st-row" style="--st-color: {{ s.color }};">
+        <div class="st-row-head">
+          <span class="st-row-name"><span class="st-row-dot"></span>{{ s.name }}</span>
+          <span class="st-row-value">{{ s.done }}/{{ s.total }}</span>
+        </div>
+        <div class="st-row-track"><div class="st-row-fill" style="width: {{ s.percent }}%;"></div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

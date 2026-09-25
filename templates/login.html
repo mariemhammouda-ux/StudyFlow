@@ -1,0 +1,333 @@
+{% extends "auth_layout.html" %}
+
+{% block title %}Connexion — StudyFlow{% endblock %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <!-- ================= LEFT HERO ================= -->
+
+    <section class="auth-hero">
+
+        <div class="auth-brand">
+            <div class="auth-brand-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <span>StudyFlow</span>
+        </div>
+
+
+        <div class="auth-hero-content">
+
+            <h1>
+                Organise ton semestre,<br>
+                atteins tes objectifs<br>
+                académiques.
+            </h1>
+
+            <div class="auth-features">
+
+                <div class="auth-feature">
+
+                    <div class="auth-check">✓</div>
+
+                    <div>
+                        <strong>Gestion des matières</strong>
+                        <p>
+                            Suivez votre progression dans chaque matière
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="auth-feature">
+
+                    <div class="auth-check">✓</div>
+
+                    <div>
+                        <strong>Planification des examens</strong>
+                        <p>
+                            Préparez-vous avec des rappels intelligents
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="auth-feature">
+
+                    <div class="auth-check">✓</div>
+
+                    <div>
+                        <strong>Technique Pomodoro</strong>
+                        <p>
+                            Sessions de travail efficaces et concentrées
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="auth-students">
+
+            <div class="student-avatars">
+
+                <span>MD</span>
+                <span>TK</span>
+                <span>AL</span>
+                <span>JB</span>
+
+            </div>
+
+            <p>
+                +2 400 étudiants actifs
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= RIGHT FORM ================= -->
+
+    <section class="auth-form-section">
+
+        <div class="auth-form-wrapper">
+
+
+            <!-- Tabs -->
+
+            <div class="auth-tabs">
+
+                <a
+                    href="{{ url_for('login') }}"
+                    class="auth-tab active"
+                >
+                    Connexion
+                </a>
+
+                <a
+                    href="{{ url_for('register') }}"
+                    class="auth-tab"
+                >
+                    Inscription
+                </a>
+
+            </div>
+
+
+            <!-- Header -->
+
+            <div class="auth-heading">
+
+                <h2>
+                    Bon retour !
+                </h2>
+
+                <p>
+                    Connectez-vous à votre compte StudyFlow
+                </p>
+
+            </div>
+
+
+            <!-- Form -->
+
+            <form
+                method="POST"
+                action="{{ url_for('login') }}"
+                class="auth-form"
+            >
+
+                <!-- Email -->
+
+                <div class="auth-field">
+
+                    <label for="username">
+                        Nom d'utilisateur
+                    </label>
+
+                    <div class="auth-input-wrapper">
+
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 4h16v16H4z"/>
+                            <path d="m4 5 8 6 8-6"/>
+                        </svg>
+
+                        <input
+                            id="username"
+                            name="username"
+                            type="text"
+                            placeholder="mariem"
+                            value="{{ request.form.get('username', '') }}"
+                            required
+                            autocomplete="username"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Password -->
+
+                <div class="auth-field">
+
+                    <label for="password">
+                        Mot de passe
+                    </label>
+
+                    <div class="auth-input-wrapper">
+
+                        <svg viewBox="0 0 24 24">
+                            <rect x="4" y="10" width="16" height="11" rx="2"/>
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                        </svg>
+
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                            autocomplete="current-password"
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            onclick="togglePassword('password', this)"
+                        >
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="2.5"/>
+                            </svg>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Options -->
+
+                <div class="auth-options">
+    <label class="remember-me">
+        <input type="checkbox" name="remember">
+        <span>Se souvenir de moi</span>
+    </label>
+
+    <button type="button" class="forgot-password">
+        Mot de passe oublié ?
+    </button>
+</div>
+
+
+                <!-- Submit -->
+
+                <button
+                    type="submit"
+                    class="auth-submit"
+                >
+                    Se connecter
+
+                    <svg viewBox="0 0 24 24">
+                        <path d="M5 12h14"/>
+                        <path d="m13 6 6 6-6 6"/>
+                    </svg>
+
+                </button>
+
+            </form>
+
+
+            <!-- Divider -->
+
+            <div class="auth-divider">
+
+                <span></span>
+
+                <p>ou</p>
+
+                <span></span>
+
+            </div>
+
+
+            <!-- Google -->
+
+            <button
+                type="button"
+                class="google-button"
+            >
+
+                <svg viewBox="0 0 48 48">
+                    <path
+                        fill="#FFC107"
+                        d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+                    />
+                    <path
+                        fill="#FF3D00"
+                        d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"
+                    />
+                    <path
+                        fill="#4CAF50"
+                        d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+                    />
+                    <path
+                        fill="#1976D2"
+                        d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+                    />
+                </svg>
+
+                Continuer avec Google
+
+            </button>
+
+
+            <!-- Register -->
+
+            <p class="auth-switch">
+
+                Pas de compte ?
+
+                <a href="{{ url_for('register') }}">
+                    S'inscrire
+                </a>
+
+            </p>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script>
+
+function togglePassword(id, button) {
+
+    const input = document.getElementById(id);
+
+    if (input.type === "password") {
+        input.type = "text";
+    } else {
+        input.type = "password";
+    }
+
+}
+
+</script>
+
+{% endblock %}

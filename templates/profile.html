@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %}Profil — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="tk-page">
+
+  <header class="tk-header">
+    <div>
+      <h1>Profil</h1>
+      <p>Gérez les informations de votre compte.</p>
+    </div>
+  </header>
+
+  <div class="profile-account tk-card">
+    <span class="profile-avatar-badge">{{ (user.username[0] if user else "U")|upper }}</span>
+    <div>
+      <div class="profile-account-name">{{ user.username if user else "Utilisateur" }}</div>
+      {% if member_since %}
+        <div class="profile-account-sub">Membre depuis le {{ member_since }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <section class="tk-form profile-section">
+    <h2 class="profile-section-title">Nom d'utilisateur</h2>
+    <form method="post" action="{{ url_for('update_username') }}">
+      <div class="form-group">
+        <label for="username">Nom d'utilisateur</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          value="{{ user.username if user else '' }}"
+          required
+          autocomplete="username"
+        >
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="tk-btn">Enregistrer</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="tk-form profile-section">
+    <h2 class="profile-section-title">Mot de passe</h2>
+    <form method="post" action="{{ url_for('update_password') }}">
+      <div class="form-group">
+        <label for="current_password">Mot de passe actuel</label>
+        <input type="password" id="current_password" name="current_password" required autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <label for="new_password">Nouveau mot de passe</label>
+        <input type="password" id="new_password" name="new_password" required autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label for="confirmation">Confirmer le nouveau mot de passe</label>
+        <input type="password" id="confirmation" name="confirmation" required autocomplete="new-password">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="tk-btn">Modifier le mot de passe</button>
+      </div>
+    </form>
+  </section>
+
+</div>
+{% endblock %}

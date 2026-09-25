@@ -1,0 +1,243 @@
+{% extends "layout.html" %}
+
+{% block title %}Calendrier — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="calendar-page">
+
+  <header class="calendar-header">
+    <div>
+      <h1>Calendrier</h1>
+      <p>Tâches et examens</p>
+    </div>
+    <button type="button" class="calendar-today-btn" id="cal-today">Aujourd'hui</button>
+  </header>
+
+  <div class="calendar-layout">
+
+    <section class="calendar-card" aria-label="Calendrier mensuel">
+      <div class="calendar-nav">
+        <button type="button" class="calendar-nav-btn" id="cal-prev" aria-label="Mois précédent">
+          <svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>
+        </button>
+        <span class="calendar-title" id="cal-label" aria-live="polite"></span>
+        <button type="button" class="calendar-nav-btn" id="cal-next" aria-label="Mois suivant">
+          <svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="calendar-weekdays">
+        <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
+      </div>
+      <div class="calendar-grid" id="cal-grid"></div>
+    </section>
+
+    <aside class="calendar-side">
+      <section class="calendar-card calendar-panel">
+        <h2 class="calendar-panel-title">Légende</h2>
+        <div class="calendar-legend-row"><span class="calendar-dot calendar-dot-task"></span>Tâche</div>
+        <div class="calendar-legend-row"><span class="calendar-dot calendar-dot-exam"></span>Examen</div>
+      </section>
+
+      <section class="calendar-card calendar-panel">
+        <h2 class="calendar-selected-title" id="cal-selected-title"></h2>
+        <ul class="calendar-list" id="cal-selected-list"></ul>
+      </section>
+
+      <section class="calendar-card calendar-panel">
+        <h2 class="calendar-panel-title">À venir</h2>
+        <ul class="calendar-list" id="cal-upcoming-list"></ul>
+      </section>
+    </aside>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+
+  var events = {{ events | tojson }};
+
+  var MONTHS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+                "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+  var MONTHS_SHORT = ["janv.", "févr.", "mars", "avr.", "mai", "juin",
+                      "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  var STATUS = { todo: "À faire", doing: "En cours", done: "Terminée" };
+
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function fmt(y, m, d) { return y + "-" + pad(m + 1) + "-" + pad(d); }
+
+  // Dates manipulées uniquement comme texte YYYY-MM-DD : aucun décalage de fuseau horaire.
+  var now = new Date();
+  var todayStr = fmt(now.getFullYear(), now.getMonth(), now.getDate());
+  var viewYear = now.getFullYear();
+  var viewMonth = now.getMonth();
+  var selected = todayStr;
+  var selectedBtn = null;
+  var buttons = {};
+
+  var grid = document.getElementById("cal-grid");
+  var label = document.getElementById("cal-label");
+  var selTitle = document.getElementById("cal-selected-title");
+  var selList = document.getElementById("cal-selected-list");
+  var upList = document.getElementById("cal-upcoming-list");
+
+  // Index des événements par date (les entrées sans date valide sont ignorées)
+  var byDate = {};
+  events.forEach(function (ev) {
+    var key = String(ev.date || "").slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) { return; }
+    ev.key = key;
+    (byDate[key] = byDate[key] || []).push(ev);
+  });
+  Object.keys(byDate).forEach(function (k) {
+    byDate[k].sort(function (a, b) { return a.type === b.type ? 0 : (a.type === "exam" ? -1 : 1); });
+  });
+
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) { node.className = cls; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  function buildItem(ev, withDate) {
+    var li = el("li");
+    var row = el(ev.url ? "a" : "div", "calendar-item");
+    if (ev.url) { row.setAttribute("href", ev.url); }
+
+    var body = el("span", "calendar-item-body");
+    body.appendChild(el("span", "calendar-item-title", ev.title));
+
+    var meta = el("span", "calendar-item-meta");
+    meta.appendChild(el("span", "", ev.type === "exam" ? "Examen" : "Tâche"));
+    if (ev.subject) {
+      var subj = el("span", "", " · " + ev.subject);
+      if (ev.color) { subj.style.color = ev.color; }
+      meta.appendChild(subj);
+    }
+    if (ev.type === "task" && ev.status) {
+      meta.appendChild(el("span", "", " · " + (STATUS[ev.status] || ev.status)));
+    }
+    body.appendChild(meta);
+
+    row.appendChild(el("span", "calendar-dot calendar-dot-" + ev.type));
+    row.appendChild(body);
+    if (withDate) {
+      var p = ev.key.split("-");
+      row.appendChild(el("span", "calendar-item-date", Number(p[2]) + " " + MONTHS_SHORT[Number(p[1]) - 1]));
+    }
+    li.appendChild(row);
+    return li;
+  }
+
+  function renderPanel() {
+    var p = selected.split("-");
+    var title = Number(p[2]) + " " + MONTHS[Number(p[1]) - 1];
+    if (Number(p[0]) !== now.getFullYear()) { title += " " + p[0]; }
+    selTitle.textContent = title;
+
+    selList.textContent = "";
+    var list = byDate[selected] || [];
+    if (!list.length) {
+      selList.appendChild(el("li", "calendar-empty", "Aucun événement ce jour"));
+    } else {
+      list.forEach(function (ev) { selList.appendChild(buildItem(ev, false)); });
+    }
+  }
+
+  function renderUpcoming() {
+    upList.textContent = "";
+    var next = events
+    .filter(function (ev) {
+        return ev.type === "exam" && ev.key && ev.key >= todayStr;
+    })
+    .sort(function (a, b) {
+        return a.key < b.key ? -1 : (a.key > b.key ? 1 : 0);
+    })
+    .slice(0, 4);
+    if (!next.length) {
+      upList.appendChild(el("li", "calendar-empty", "Rien à venir"));
+      return;
+    }
+    next.forEach(function (ev) { upList.appendChild(buildItem(ev, true)); });
+  }
+
+  function select(key) {
+    if (selectedBtn) { selectedBtn.classList.remove("is-selected"); }
+    selected = key;
+    selectedBtn = buttons[key] || null;
+    if (selectedBtn) { selectedBtn.classList.add("is-selected"); }
+    renderPanel();
+  }
+
+  function renderGrid() {
+    label.textContent = MONTHS[viewMonth] + " " + viewYear;
+    grid.textContent = "";
+    buttons = {};
+    selectedBtn = null;
+
+    var firstWeekday = new Date(viewYear, viewMonth, 1).getDay();   // 0 = dimanche
+    var offset = firstWeekday === 0 ? 6 : firstWeekday - 1;         // lundi = 0
+    var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    for (var i = 0; i < offset; i++) {
+      var blank = el("span", "calendar-blank");
+      blank.setAttribute("aria-hidden", "true");
+      grid.appendChild(blank);
+    }
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var key = fmt(viewYear, viewMonth, d);
+      var dayEvents = byDate[key] || [];
+
+      var btn = el("button", "calendar-day");
+      btn.setAttribute("type", "button");
+      btn.setAttribute("aria-label", d + " " + MONTHS[viewMonth] + " " + viewYear +
+        (dayEvents.length ? ", " + dayEvents.length + " événement" + (dayEvents.length > 1 ? "s" : "") : ""));
+      if (key === todayStr) { btn.classList.add("is-today"); }
+
+      btn.appendChild(el("span", "calendar-daynum", String(d)));
+      var dots = el("span", "calendar-dots");
+      dayEvents.slice(0, 4).forEach(function (ev) {
+        dots.appendChild(el("span", "calendar-dot calendar-dot-" + ev.type));
+      });
+      btn.appendChild(dots);
+
+      btn.addEventListener("click", (function (k) { return function () { select(k); }; })(key));
+      buttons[key] = btn;
+      grid.appendChild(btn);
+    }
+
+    if (buttons[selected]) {
+      selectedBtn = buttons[selected];
+      selectedBtn.classList.add("is-selected");
+    }
+  }
+
+  function goTo(y, m) {
+    viewYear = y;
+    viewMonth = m;
+    selected = (y === now.getFullYear() && m === now.getMonth()) ? todayStr : fmt(y, m, 1);
+    renderGrid();
+    renderPanel();
+  }
+
+  document.getElementById("cal-prev").addEventListener("click", function () {
+    goTo(viewMonth === 0 ? viewYear - 1 : viewYear, viewMonth === 0 ? 11 : viewMonth - 1);
+  });
+  document.getElementById("cal-next").addEventListener("click", function () {
+    goTo(viewMonth === 11 ? viewYear + 1 : viewYear, viewMonth === 11 ? 0 : viewMonth + 1);
+  });
+  document.getElementById("cal-today").addEventListener("click", function () {
+    goTo(now.getFullYear(), now.getMonth());
+  });
+
+  renderGrid();
+  renderPanel();
+  renderUpcoming();
+})();
+</script>
+{% endblock %}

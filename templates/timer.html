@@ -1,0 +1,373 @@
+{% extends "layout.html" %}
+
+{% block title %}Pomodoro — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="tk-page pomodoro-page">
+
+  <header class="tk-header">
+    <div>
+      <h1>Pomodoro</h1>
+      <p>Choisissez la durée de votre session de concentration.</p>
+    </div>
+  </header>
+
+  <div class="pomodoro-layout">
+
+    <!-- ===== COLONNE GAUCHE : TIMER ===== -->
+    <div class="pomodoro-card tk-card">
+
+      <div class="pomodoro-duration">
+        <div class="pomodoro-duration-field">
+          <input type="number" id="duration-hours" value="0" min="0" step="1" inputmode="numeric">
+          <span>heures</span>
+        </div>
+        <div class="pomodoro-duration-field">
+          <input type="number" id="duration-minutes" value="0" min="0" max="59" step="1" inputmode="numeric">
+          <span>minutes</span>
+        </div>
+      </div>
+
+      <div class="pomodoro-ring-wrap">
+        <svg class="pomodoro-ring" viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="pomodoro-ring-track" cx="100" cy="100" r="90"/>
+          <circle class="pomodoro-ring-progress" id="ring-progress" cx="100" cy="100" r="90"/>
+        </svg>
+        <div class="pomodoro-ring-center">
+          <div class="timer-display" id="timer-display">25:00</div>
+          <p class="timer-status" id="timer-status">Prêt à démarrer</p>
+        </div>
+      </div>
+
+      <div class="timer-controls pomodoro-controls">
+        <button type="button" id="reset-btn" class="pomodoro-btn pomodoro-btn-ghost" aria-label="Réinitialiser">
+          <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+        <button type="button" id="start-btn" class="pomodoro-btn pomodoro-btn-primary" aria-label="Démarrer">
+          <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+        </button>
+        <button type="button" id="pause-btn" class="pomodoro-btn pomodoro-btn-ghost" aria-label="Pause">
+          <svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        </button>
+      </div>
+
+      <form
+        method="POST"
+        action="{{ url_for('save_timer_session') }}"
+        class="tk-form pomodoro-save-form"
+        id="timer-save-form"
+      >
+        <input type="hidden" name="duration_min" id="save-duration-min" value="25">
+
+        <div class="form-group">
+          <label for="subject_id">Matière (optionnel)</label>
+          <select name="subject_id" id="subject_id">
+            <option value="">— Aucune matière —</option>
+            {% for subject in subjects %}
+              <option value="{{ subject.id }}">{{ subject.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="save-session-btn" class="tk-btn" disabled>
+            Enregistrer la session terminée
+          </button>
+        </div>
+      </form>
+
+    </div>
+
+    <!-- ===== COLONNE DROITE : SUIVI D'ACTIVITÉ ===== -->
+    <aside class="pomodoro-side">
+
+      <section class="pomodoro-panel tk-card">
+        <h2 class="pomodoro-panel-title">Aujourd'hui</h2>
+
+        <div class="pomodoro-stats">
+          <div class="pomodoro-stat">
+            <span class="pomodoro-stat-value">{{ today_sessions }}</span>
+            <span class="pomodoro-stat-label">Sessions</span>
+          </div>
+          <div class="pomodoro-stat">
+            <span class="pomodoro-stat-value">{{ today_focus_label }}</span>
+            <span class="pomodoro-stat-label">Temps de focus</span>
+          </div>
+          <div class="pomodoro-stat">
+            <span class="pomodoro-stat-value">{{ today_pauses }}</span>
+            <span class="pomodoro-stat-label">Pauses</span>
+          </div>
+
+        </div>
+
+        
+      </section>
+
+      <section class="pomodoro-panel tk-card">
+        <h2 class="pomodoro-panel-title">Historique récent</h2>
+
+        {% if recent_sessions %}
+        <ul class="pomodoro-history">
+          {% for item in recent_sessions %}
+          <li class="pomodoro-history-row">
+            <div class="pomodoro-history-main">
+              <strong>{{ item.subject_name }}</strong>
+              <span>{{ item.when_label }}</span>
+            </div>
+            <span class="pomodoro-history-duration">{{ item.duration_label }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="pomodoro-history-empty">Aucune session enregistrée pour le moment.</p>
+        {% endif %}
+      </section>
+
+    </aside>
+
+  </div>
+
+</div>
+
+<script>
+    const hoursInput = document.getElementById("duration-hours");
+    const minutesInput = document.getElementById("duration-minutes");
+
+    const saveDurationInput =
+        document.getElementById("save-duration-min");
+
+    const displayElement =
+        document.getElementById("timer-display");
+
+    const statusElement =
+        document.getElementById("timer-status");
+
+    const startButton =
+        document.getElementById("start-btn");
+
+    const pauseButton =
+        document.getElementById("pause-btn");
+
+    const resetButton =
+        document.getElementById("reset-btn");
+
+    const saveButton =
+        document.getElementById("save-session-btn");
+
+    // Cercle de progression (ajout design uniquement, ne change pas la logique du timer)
+    const ringElement = document.getElementById("ring-progress");
+    const RING_RADIUS = 90;
+    const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+    if (ringElement) {
+        ringElement.style.strokeDasharray = String(RING_CIRCUMFERENCE);
+    }
+
+
+    let totalSeconds = 25 * 60;
+    let remainingSeconds = totalSeconds;
+
+    let timerInterval = null;
+    let sessionStarted = false;
+
+
+    function pad(value) {
+        return String(value).padStart(2, "0");
+    }
+
+
+    function getDurationMinutes() {
+        const hours = Number(hoursInput.value) || 0;
+        const minutes = Number(minutesInput.value) || 0;
+
+        return (hours * 60) + minutes;
+    }
+
+
+    function updateRing() {
+        if (!ringElement) {
+            return;
+        }
+
+        const progress = totalSeconds > 0 ? remainingSeconds / totalSeconds : 0;
+        const offset = RING_CIRCUMFERENCE * (1 - progress);
+
+        ringElement.style.strokeDashoffset = String(offset);
+    }
+
+
+    function updateDisplay() {
+        const hours = Math.floor(remainingSeconds / 3600);
+
+        const minutes =
+            Math.floor((remainingSeconds % 3600) / 60);
+
+        const seconds =
+            remainingSeconds % 60;
+
+
+        if (hours > 0) {
+            displayElement.textContent =
+                pad(hours) + ":" +
+                pad(minutes) + ":" +
+                pad(seconds);
+        } else {
+            displayElement.textContent =
+                pad(minutes) + ":" +
+                pad(seconds);
+        }
+
+        updateRing();
+    }
+
+
+    function updateDuration() {
+        if (sessionStarted) {
+            return;
+        }
+
+        const durationMinutes = getDurationMinutes();
+
+        if (durationMinutes <= 0) {
+            return;
+        }
+
+        totalSeconds = durationMinutes * 60;
+        remainingSeconds = totalSeconds;
+
+        saveDurationInput.value = durationMinutes;
+
+        updateDisplay();
+    }
+
+
+    function tick() {
+        remainingSeconds--;
+
+        updateDisplay();
+
+        if (remainingSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+
+            remainingSeconds = 0;
+
+            updateDisplay();
+
+            statusElement.textContent =
+                "Session terminée !";
+
+            saveButton.disabled = false;
+        }
+    }
+
+
+    hoursInput.addEventListener("input", updateDuration);
+
+    minutesInput.addEventListener("input", updateDuration);
+
+
+    startButton.addEventListener("click", function() {
+
+        if (timerInterval !== null) {
+            return;
+        }
+
+        const durationMinutes = getDurationMinutes();
+
+
+        if (durationMinutes <= 0) {
+            statusElement.textContent =
+                "Veuillez entrer une durée valide.";
+
+            hoursInput.focus();
+
+            return;
+        }
+
+
+        if (!sessionStarted) {
+
+            totalSeconds = durationMinutes * 60;
+            remainingSeconds = totalSeconds;
+
+            saveDurationInput.value = durationMinutes;
+
+            sessionStarted = true;
+
+            hoursInput.readOnly = true;
+            minutesInput.readOnly = true;
+        }
+
+
+        if (remainingSeconds <= 0) {
+            return;
+        }
+
+
+        statusElement.textContent =
+            "Session en cours...";
+
+        timerInterval = setInterval(tick, 1000);
+    });
+
+
+    pauseButton.addEventListener("click", function() {
+
+        if (timerInterval !== null) {
+
+            clearInterval(timerInterval);
+
+            timerInterval = null;
+
+            statusElement.textContent =
+                "En pause.";
+        }
+    });
+
+
+    resetButton.addEventListener("click", function() {
+
+        if (timerInterval !== null) {
+
+            clearInterval(timerInterval);
+
+            timerInterval = null;
+        }
+
+
+        const durationMinutes = getDurationMinutes();
+
+
+        if (durationMinutes <= 0) {
+
+            remainingSeconds = 0;
+
+            updateDisplay();
+
+            return;
+        }
+
+
+        totalSeconds = durationMinutes * 60;
+        remainingSeconds = totalSeconds;
+
+        sessionStarted = false;
+
+        hoursInput.readOnly = false;
+        minutesInput.readOnly = false;
+
+        saveDurationInput.value = durationMinutes;
+
+        updateDisplay();
+
+        statusElement.textContent = "Prêt à démarrer";
+
+        saveButton.disabled = true;
+    });
+
+
+    updateDisplay();
+
+</script>
+
+{% endblock %}

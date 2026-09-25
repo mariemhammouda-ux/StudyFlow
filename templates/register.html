@@ -1,0 +1,187 @@
+{% extends "auth_layout.html" %}
+
+{% block title %}Inscription — StudyFlow{% endblock %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <!-- ================= LEFT HERO (identique à Login) ================= -->
+
+    <section class="auth-hero">
+
+        <div class="auth-brand">
+            <div class="auth-brand-icon"><span></span><span></span><span></span><span></span></div>
+            <span>StudyFlow</span>
+        </div>
+
+        <div class="auth-hero-content">
+            <h1>Organise ton semestre,<br>atteins tes objectifs<br>académiques.</h1>
+
+            <div class="auth-features">
+                <div class="auth-feature">
+                    <div class="auth-check">✓</div>
+                    <div>
+                        <strong>Gestion des matières</strong>
+                        <p>Suivez votre progression dans chaque matière</p>
+                    </div>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-check">✓</div>
+                    <div>
+                        <strong>Planification des examens</strong>
+                        <p>Préparez-vous avec des rappels intelligents</p>
+                    </div>
+                </div>
+                <div class="auth-feature">
+                    <div class="auth-check">✓</div>
+                    <div>
+                        <strong>Technique Pomodoro</strong>
+                        <p>Sessions de travail efficaces et concentrées</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-students">
+            <div class="student-avatars"><span>MD</span><span>TK</span><span>AL</span><span>JB</span></div>
+            <p>+2 400 étudiants actifs</p>
+        </div>
+
+    </section>
+
+
+    <!-- ================= RIGHT FORM ================= -->
+
+    <section class="auth-form-section">
+
+        <div class="auth-form-wrapper">
+
+            <!-- Logo visible seulement sur mobile (le panneau de gauche est masqué) -->
+            <div class="auth-mobile-brand">
+                <div class="auth-brand-icon"><span></span><span></span><span></span><span></span></div>
+                <span>StudyFlow</span>
+            </div>
+
+            <div class="auth-tabs">
+                <a href="{{ url_for('login') }}" class="auth-tab">Connexion</a>
+                <a href="{{ url_for('register') }}" class="auth-tab active">Inscription</a>
+            </div>
+
+            <div class="auth-heading">
+                <h2>Créer un compte</h2>
+                <p>Rejoignez StudyFlow et organisez vos études en un seul endroit</p>
+            </div>
+
+            <!-- Messages d'erreur Flask -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="auth-alert" role="alert">
+                        {% for message in messages %}
+                            <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+
+                <!-- Nom d'utilisateur -->
+                <div class="auth-field">
+                    <label for="username">Nom d'utilisateur</label>
+                    <div class="auth-input-wrapper">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M4 21a8 8 0 0 1 16 0"/>
+                        </svg>
+                        <input
+                            id="username"
+                            name="username"
+                            type="text"
+                            placeholder="Choisis un nom d'utilisateur"
+                            value="{{ request.form.get('username', '') }}"
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <!-- Mot de passe -->
+                <div class="auth-field">
+                    <label for="password">Mot de passe</label>
+                    <div class="auth-input-wrapper">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="4" y="10" width="16" height="11" rx="2"/>
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                        </svg>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="password-toggle" aria-label="Afficher ou masquer le mot de passe" onclick="togglePassword('password', this)">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="2.5"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Confirmation -->
+                <div class="auth-field">
+                    <label for="confirmation">Confirmation du mot de passe</label>
+                    <div class="auth-input-wrapper">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="4" y="10" width="16" height="11" rx="2"/>
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                        </svg>
+                        <input
+                            id="confirmation"
+                            name="confirmation"
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="password-toggle" aria-label="Afficher ou masquer la confirmation" onclick="togglePassword('confirmation', this)">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/>
+                                <circle cx="12" cy="12" r="2.5"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="auth-submit">
+                    Créer mon compte
+                    <svg viewBox="0 0 24 24">
+                        <path d="M5 12h14"/>
+                        <path d="m13 6 6 6-6 6"/>
+                    </svg>
+                </button>
+
+            </form>
+
+            <p class="auth-switch">
+                Déjà un compte ?
+                <a href="{{ url_for('login') }}">Se connecter</a>
+            </p>
+
+        </div>
+
+    </section>
+
+</div>
+
+<script>
+function togglePassword(id, button) {
+    const input = document.getElementById(id);
+    input.type = input.type === "password" ? "text" : "password";
+}
+</script>
+
+{% endblock %}

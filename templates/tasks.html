@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+
+{% block title %}Mes tâches — StudyFlow{% endblock %}
+
+{% block content %}
+{% set mois = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."] %}
+{% set n_todo = tasks|selectattr("status", "equalto", "todo")|list|length %}
+{% set n_doing = tasks|selectattr("status", "equalto", "doing")|list|length %}
+{% set n_done = tasks|selectattr("status", "equalto", "done")|list|length %}
+
+{# "2026-10-14" -> "14 oct." (format inattendu : affiché tel quel) #}
+{% macro fdate(value) -%}
+  {%- if value and value|length >= 10 and value[4] == "-" and value[7] == "-" -%}
+    {{ value[8:10]|int }} {{ mois[value[5:7]|int - 1] }}
+  {%- else -%}
+    {{ value }}
+  {%- endif -%}
+{%- endmacro %}
+
+<div class="tk-page">
+
+  <!-- ===== HEADER ===== -->
+  <header class="tk-header">
+    <div>
+      <h1>Tâches</h1>
+      <p>{{ tasks|length }} tâche{% if tasks|length > 1 %}s{% endif %} · {{ n_done }} terminée{% if n_done > 1 %}s{% endif %}</p>
+    </div>
+    <a href="{{ url_for('new_task') }}" class="tk-btn" aria-label="Ajouter une tâche">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      Ajouter
+    </a>
+  </header>
+
+  {% if tasks %}
+
+  <!-- ===== CARTES PAR STATUT ===== -->
+  <section class="tk-stats">
+    <div class="tk-stat">
+      <svg class="tk-c-muted" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+      <div><strong>{{ n_todo }}</strong><span>À faire</span></div>
+    </div>
+    <div class="tk-stat">
+      <svg class="tk-c-primary" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      <div><strong>{{ n_doing }}</strong><span>En cours</span></div>
+    </div>
+    <div class="tk-stat">
+      <svg class="tk-c-success" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
+      <div><strong>{{ n_done }}</strong><span>Terminées</span></div>
+    </div>
+  </section>
+
+  <!-- ===== RECHERCHE + FILTRES ===== -->
+  <div class="tk-toolbar">
+    <label class="tk-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="task-search" placeholder="Rechercher une tâche..." autocomplete="off">
+    </label>
+    <div class="tk-chips" role="group" aria-label="Filtrer par priorité">
+      <button type="button" class="tk-chip active" data-filter="all" aria-pressed="true">Toutes</button>
+      <button type="button" class="tk-chip" data-filter="high" aria-pressed="false">Haute</button>
+      <button type="button" class="tk-chip" data-filter="medium" aria-pressed="false">Moyenne</button>
+      <button type="button" class="tk-chip" data-filter="low" aria-pressed="false">Basse</button>
+    </div>
+  </div>
+
+  <div class="tk-tabs" role="group" aria-label="Filtrer par statut">
+    <button type="button" class="tk-tab active" data-filter="all" aria-pressed="true">Tous</button>
+    <button type="button" class="tk-tab" data-filter="todo" aria-pressed="false">À faire</button>
+    <button type="button" class="tk-tab" data-filter="doing" aria-pressed="false">En cours</button>
+    <button type="button" class="tk-tab" data-filter="done" aria-pressed="false">Terminée</button>
+  </div>
+
+  <!-- ===== LISTE ===== -->
+  <section class="tk-card">
+    <ul class="tk-list" id="task-list">
+      {% for task in tasks %}
+        {% set status = task["status"] %}
+        {% set priority = task["priority"] if task["priority"] in ["high", "medium", "low"] else "low" %}
+        <li class="tk-row{% if status == 'done' %} is-done{% endif %}"
+            data-status="{{ status }}"
+            data-priority="{{ priority }}"
+            data-due="{{ task['due_date'] or '' }}"
+            data-search="{{ (task['title'] ~ ' ' ~ (task['subject_name'] or ''))|lower }}">
+
+          {% if status == "done" %}
+            <span class="tk-status tk-status-done" title="Terminée">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
+            </span>
+          {% else %}
+            <form action="{{ url_for('complete_task', task_id=task['id']) }}" method="post" class="tk-inline">
+              <button type="submit" class="tk-status tk-status-{{ status }}" title="Marquer comme terminée" aria-label="Marquer « {{ task['title'] }} » comme terminée">
+                {% if status == "doing" %}
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+                {% else %}
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>
+                {% endif %}
+              </button>
+            </form>
+          {% endif %}
+
+          <div class="tk-main">
+            <a class="tk-name" href="{{ url_for('edit_task', task_id=task['id']) }}">{{ task["title"] }}</a>
+            <span class="tk-sub">
+              {% if task["subject_name"] %}
+                <span style="color: {{ task['subject_color'] or 'var(--color-primary)' }};">{{ task["subject_name"] }}</span>
+              {% else %}
+                Aucune matière
+              {% endif %}
+            </span>
+          </div>
+
+          <span class="tk-badge tk-badge-{{ priority }}">{{ {'high': 'haute', 'medium': 'moyenne', 'low': 'basse'}[priority] }}</span>
+          <span class="tk-due">{% if task["due_date"] %}{{ fdate(task["due_date"]) }}{% else %}—{% endif %}</span>
+
+          <div class="tk-actions">
+            <a href="{{ url_for('edit_task', task_id=task['id']) }}" title="Modifier" aria-label="Modifier la tâche">
+              <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>
+            </a>
+            <form action="{{ url_for('delete_task', task_id=task['id']) }}" method="post" class="tk-inline"
+                  onsubmit="return confirm('Supprimer cette tâche ?');">
+              <button type="submit" title="Supprimer" aria-label="Supprimer la tâche">
+                <svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>
+              </button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+    <p class="tk-noresult" id="task-noresult" hidden>Aucune tâche ne correspond à ta recherche.</p>
+  </section>
+
+  {% else %}
+
+  <!-- ===== ÉTAT VIDE ===== -->
+  <section class="tk-card tk-empty">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg>
+    <strong>Aucune tâche pour le moment</strong>
+    <span>Ajoute ta première tâche pour organiser ton travail.</span>
+    <a href="{{ url_for('new_task') }}" class="tk-btn">Ajouter une tâche</a>
+  </section>
+
+  {% endif %}
+
+</div>
+
+<script src="{{ url_for('static', filename='js/tasks.js') }}"></script>
+{% endblock %}

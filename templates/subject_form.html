@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title }} — StudyFlow{% endblock %}
+
+{% block content %}
+<div class="tk-page">
+  <header class="tk-header">
+    <div><h1>{{ title }}</h1></div>
+  </header>
+
+  <form method="post" class="tk-form subject-form">
+    <div class="form-group">
+      <label for="name">Nom de la matière</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        value="{{ subject.name if subject else '' }}"
+        placeholder="Ex. Droit Civil"
+        required
+        autofocus
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="color">Couleur</label>
+      <div class="subject-form-color-row">
+        <input
+          type="color"
+          id="color"
+          name="color"
+          class="subject-form-color-input"
+          value="{{ subject.color if subject and subject.color else '#5B4FCF' }}"
+        >
+        <span class="subject-form-color-hint">Utilisée pour repérer la matière dans Tâches, Examens et Calendrier.</span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="tk-btn">Enregistrer</button>
+      <a href="{{ url_for('subjects') }}" class="tk-cancel">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
