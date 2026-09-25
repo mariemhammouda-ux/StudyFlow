@@ -1,5 +1,7 @@
 # StudyFlow
-#### Video Demo:<https://vimeo.com/1230238281?share=copy>
+
+#### Video Demo: https://vimeo.com/1230238281
+
 StudyFlow est une application web développée avec **Python et Flask** pour aider les étudiants à organiser leurs études et à suivre leur progression.
 
 ## Fonctionnalités
@@ -34,7 +36,6 @@ StudyFlow/
 ├── static/
 │   ├── css/
 │   │   └── style.css
-│   │
 │   └── js/
 │       ├── sta.js
 │       └── tasks.js
@@ -65,8 +66,6 @@ StudyFlow/
 ├── init_db.py
 ├── requirements.txt
 ├── schema.sql
-├── studyflow.db
-│
 └── README.md
 ```
 
@@ -114,9 +113,9 @@ Contient les scripts JavaScript utilisés pour certaines fonctionnalités de l'a
 
 ## Base de données
 
-StudyFlow utilise **SQLite**.
+StudyFlow utilise **SQLite** pour stocker les données des utilisateurs, matières, tâches, examens et sessions d'étude.
 
-Les principales tables utilisées sont :
+Les principales tables sont :
 
 * `users`
 * `subjects`
@@ -124,11 +123,7 @@ Les principales tables utilisées sont :
 * `exams`
 * `study_sessions`
 
-La base de données locale est stockée dans :
-
-```text
-studyflow.db
-```
+La base de données est créée localement à l'aide de `init_db.py`.
 
 ## Installation
 
@@ -162,14 +157,6 @@ Puis ouvrir dans le navigateur :
 http://127.0.0.1:5000
 ```
 
-###AI Assistance
-
-Pendant le développement de StudyFlow, j'ai utilisé des outils
-d'intelligence artificielle, notamment ChatGPT, comme assistants de
-programmation pour obtenir des explications, déboguer certaines
-erreurs et recevoir des suggestions d'implémentation.
-
-J'ai testé, vérifié et adapté le code utilisé dans le projet.
 ## Utilisation
 
 Après la création d'un compte, l'étudiant peut :
@@ -209,6 +196,11 @@ StudyFlow a été développé comme projet d'apprentissage afin de mettre en pra
 * JavaScript
 * organisation d'une application web
 
+## AI Assistance
+
+Pendant le développement de StudyFlow, j'ai utilisé des outils d'intelligence artificielle, notamment ChatGPT, comme assistants de programmation pour obtenir des explications, déboguer certaines erreurs et recevoir des suggestions d'implémentation.
+
+J'ai testé, vérifié et adapté le code utilisé dans le projet.
 
 ## Auteur
 
@@ -217,4 +209,3 @@ StudyFlow a été développé comme projet d'apprentissage afin de mettre en pra
 StudyFlow est un projet personnel développé dans le cadre de mon apprentissage du développement web avec Python, Flask, SQLite, HTML, CSS et JavaScript.
 
 © 2026 Mariem Hammouda. Tous droits réservés.
-
